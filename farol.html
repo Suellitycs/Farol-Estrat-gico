@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>Farol Estratégico</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="farol.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container head">
+      <div class="brand">
+        <img src="logo-farol.png" alt="logo" class="logo">
+        <div class="brand-txt">
+          <strong>Farol Estratégico</strong>
+          <small>Controladoria Jurídica</small>
+        </div>
+      </div>
+      <button id="reload" class="btn btn--primary">Atualizar</button>
+    </div>
+  </header>
+
+  <nav class="tabs container">
+    <button class="tab active" data-tab="geral">Visão Geral</button>
+    <button class="tab" data-tab="prod">Produtividade da Semana</button>
+    <button class="tab" data-tab="atas">Atas</button>
+  </nav>
+
+  <!-- ====== VISÃO GERAL ====== -->
+  <main id="tab-geral" class="container tab-panel active">
+
+    <section class="card">
+      <h1>Saúde da Sprint</h1>
+      <p class="muted">Fonte: Trello • atualizado <span id="last-upd">—</span></p>
+      <div class="filters">
+        <div class="f">
+          <label>Colaborador</label>
+          <select id="f-colab"><option value="">(Todos)</option></select>
+        </div>
+        <div class="f">
+          <label>Lista</label>
+          <select id="f-list">
+            <option value="">Todas</option>
+            <option>Backlog</option>
+            <option>Fazendo</option>
+            <option>Aguardando</option>
+            <option>Feito</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="">Todos</option>
+            <option value="BACKLOG">Backlog</option>
+            <option value="FAZENDO">Fazendo</option>
+            <option value="AGUARDANDO">Aguardando</option>
+            <option value="FEITO">Feito</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Aging (≥ dias)</label>
+          <select id="f-aging">
+            <option value="0">0</option>
+            <option value="3">3</option>
+            <option value="7" selected>7</option>
+            <option value="14">14</option>
+          </select>
+        </div>
+        <div class="f f-wide">
+          <label>Busca</label>
+          <input id="f-q" placeholder="texto no título...">
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="k"><div class="k-num" id="k-hoje">0</div><div class="k-label">Feitos hoje</div></div>
+        <div class="k"><div class="k-num" id="k-sem">0</div><div class="k-label">Feitos na semana</div></div>
+        <div class="k"><div class="k-num" id="k-doing">0</div><div class="k-label">Em andamento</div></div>
+        <div class="k"><div class="k-num" id="k-wait">0</div><div class="k-label">Aguardando</div></div>
+        <div class="k"><div class="k-num" id="k-aged">0</div><div class="k-label">+ dias sem mover</div></div>
+        <div class="k"><div class="k-num" id="k-bypass">0%</div><div class="k-label">Bypass p/ Feito</div></div>
+        <div class="k"><div class="k-num" id="k-lead">–</div><div class="k-label">Lead médio (Faz→Feito)</div></div>
+        <div class="k k-gauge">
+          <div class="k-gauge-arc">
+            <svg viewBox="0 0 100 60"><path id="score-arc" d="M10,50 A40,40 0 0 1 90,50" stroke-width="10" stroke="url(#g)" fill="none"/></svg>
+            <svg width="0" height="0"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ff8a8a"/><stop offset="50%" stop-color="#ffd36c"/><stop offset="100%" stop-color="#00e896"/></linearGradient></defs></svg>
+          </div>
+          <div class="k-num" id="k-score">81</div>
+          <div class="k-label">Score de Saúde</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid-3">
+      <article class="card">
+        <h2>Feitos por dia (semana)</h2>
+        <svg id="chart-daily" class="chart"></svg>
+      </article>
+      <article class="card">
+        <h2>Top 10 mais “Aged”</h2>
+        <ol id="top-aged" class="list"></ol>
+      </article>
+      <article class="card">
+        <h2>Lead médio por responsável</h2>
+        <svg id="chart-lead" class="chart"></svg>
+      </article>
+    </section>
+
+    <section class="card">
+      <div class="header-row">
+        <h2>Atividades (com trilha de movimentação)</h2>
+        <button id="btn-csv" class="btn">Exportar CSV</button>
+      </div>
+      <div id="err" class="err" hidden></div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Atividade</th>
+              <th>Resp.</th>
+              <th>Lista</th>
+              <th>Entrada Fazendo</th>
+              <th>Fechamento</th>
+              <th>Lead</th>
+              <th>Bypass</th>
+              <th>Aging</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- ====== PRODUTIVIDADE ====== -->
+  <main id="tab-prod" class="container tab-panel">
+    <section class="card">
+      <h1>Produtividade da Semana</h1>
+      <p class="muted">Resumo consolidado por colaborador.</p>
+      <div class="grid-2">
+        <article class="card">
+          <h2>Feitos por colaborador</h2>
+          <svg id="chart-done-by" class="chart"></svg>
+        </article>
+        <article class="card">
+          <h2>Distribuição por listas</h2>
+          <svg id="chart-list-dist" class="chart"></svg>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <!-- ====== ATAS ====== -->
+  <main id="tab-atas" class="container tab-panel">
+    <section class="card">
+      <h1>Atas</h1>
+      <p class="muted">Cartões da lista “ATAS …” do board.</p>
+      <ul id="atas-list" class="list"></ul>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="container">© 2025 Controladoria Jurídica — Farol</div></footer>
+
+  <script src="config.js"></script>
+  <script src="farol.js"></script>
+</body>
+</html>
